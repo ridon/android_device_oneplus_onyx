@@ -207,6 +207,14 @@ on post-fs
     chmod 0660 /proc/touchpanel/letter_m_enable
     chown root system /proc/touchpanel/letter_w_enable
     chmod 0660 /proc/touchpanel/letter_w_enable
+    chown root system /proc/touchpanel/ltr_swipe_enable
+    chmod 0660 /proc/touchpanel/ltr_swipe_enable
+    chown root system /proc/touchpanel/rtl_swipe_enable
+    chmod 0660 /proc/touchpanel/rtl_swipe_enable
+    chown root system /proc/touchpanel/utd_swipe_enable
+    chmod 0660 /proc/touchpanel/utd_swipe_enable
+    chown root system /proc/touchpanel/dtu_swipe_enable
+    chmod 0660 /proc/touchpanel/dtu_swipe_enable
 
     chown root system /proc/touchpanel/keypad_enable
     chmod 0660 /proc/touchpanel/keypad_enable
@@ -421,14 +429,6 @@ on property:sys.boot_completed=1
     # Temp hack to fix torch not being registered on boot
     restart media
 
-service cnd /system/bin/cnd
-    class late_start
-    socket cnd stream 660 root inet
-
-service dpmd /system/bin/dpmd
-    class late_start
-    socket dpmd stream 660 root system
-
 service irsc_util /system/bin/irsc_util "/etc/sec_config"
     class main
     user root
@@ -515,20 +515,12 @@ service time_daemon /system/bin/time_daemon
 
 on property:vold.decrypt=trigger_restart_framework
     start config_bdaddr
-    start config_bluetooth
     start wcnss-service
 
 service config_bdaddr /system/bin/btnvtool -O
     class late_start
     user bluetooth
-    group bluetooth net_bt_admin qcom_diag radio
-    oneshot
-
-service config_bluetooth /system/bin/sh /init.qcom.bt.sh "onboot"
-    class core
-    user root
-    group bluetooth net_bt_admin qcom_diag radio
-    oneshot
+    group bluetooth radio
 
 service hciattach /system/bin/sh /init.qcom.bt.sh
     class late_start
@@ -536,14 +528,6 @@ service hciattach /system/bin/sh /init.qcom.bt.sh
     group bluetooth net_bt_admin qcom_diag radio
     disabled
     oneshot
-
-service cnd /system/bin/cnd
-    class late_start
-    socket cnd stream 660 root inet
-
-service dpmd /system/bin/dpmd
-    class late_start
-    socket dpmd stream 660 root system
 
 on property:bluetooth.hciattach=true
     start hciattach
@@ -614,17 +598,10 @@ service pfm /system/bin/pfm
     user system
     group system drmrpc mount
 
-service ril-daemon /system/bin/rild
+service ril-daemon1 /system/bin/rild -c 2
     class main
-    socket rild stream 660 root radio
-    socket sap_uim_socket1 stream 660 bluetooth bluetooth
-    socket rild-debug stream 660 radio system
-    user root
-    group radio cache inet misc audio log qcom_diag
-
-service ril-daemon2 /system/bin/rild -c 2
-    class late_start
     socket rild2 stream 660 root radio
+    socket sap_uim_socket2 stream 660 bluetooth bluetooth
     socket rild-debug2 stream 660 radio system
     user root
-    group radio cache inet misc audio sdcard_r sdcard_rw diag qcom_diag log
+    group radio cache inet misc audio log readproc wakelock qcom_diag
